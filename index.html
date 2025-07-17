@@ -4,7 +4,7 @@
 <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>QR Code Nâng Cao</title>
+    <title>Generate QR Code</title>
     <script src="https://cdn.jsdelivr.net/npm/qr-code-styling@1.6.0/lib/qr-code-styling.js"></script>
     <style>
         body {
@@ -40,6 +40,7 @@
             display: block;
             font-size: 14px;
             margin-bottom: 4px;
+
             color: #555;
         }
 
@@ -122,6 +123,64 @@
 
         .history-item:hover {
             background: #e0e0e0;
+        }
+
+        /* Media Query cho điện thoại */
+        @media (max-width: 600px) {
+            body {
+                margin: 0;
+                padding: 10px;
+            }
+
+            .container {
+                padding: 15px;
+                margin: 0 auto;
+            }
+
+            h2 {
+                font-size: 1.2rem;
+            }
+
+            .form-group label {
+                font-size: 0.8rem;
+            }
+
+            input[type="text"],
+            select,
+            input[type="file"] {
+                font-size: 0.8rem;
+                padding: 8px;
+            }
+
+            .color-pickers {
+                flex-direction: column;
+                gap: 10px;
+            }
+
+            .color-pickers label {
+                flex: 1 1 100%;
+            }
+
+            .color-pickers input[type="color"] {
+                width: 100%;
+                height: 30px;
+            }
+
+            button {
+                width: 100%;
+                padding: 10px;
+                margin: 6px 0;
+                font-size: 0.8rem;
+            }
+
+            #qr canvas {
+                max-width: 100% !important;
+                height: auto !important;
+            }
+
+            .history-item {
+                font-size: 0.75rem;
+            }
         }
     </style>
 </head>
@@ -235,9 +294,11 @@
             const size = parseInt(sizeInput.value);
             const gradientChoice = gradientType.value;
             let dotsOptions = {};
+            let backgroundColor = "#ffffff"; // Màu nền mặc định
 
             if (gradientChoice === "none") {
                 dotsOptions = { color: gradientColor1.value, type: "rounded" };
+                backgroundColor = gradientColor2.value; // Sử dụng gradientColor2 cho màu nền ở chế độ none
             } else {
                 dotsOptions = {
                     gradient: {
@@ -250,6 +311,7 @@
                     },
                     type: "rounded"
                 };
+                backgroundColor = "#ffffff"; // Giữ màu trắng cho linear và radial
             }
 
             qrCode.update({
@@ -258,7 +320,7 @@
                 data: url,
                 dotsOptions: dotsOptions,
                 cornersSquareOptions: { type: eyeShape.value },
-                backgroundOptions: { color: "#ffffff" }
+                backgroundOptions: { color: backgroundColor }
             });
 
             if (logoInput.files[0]) {
