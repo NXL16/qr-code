@@ -1,0 +1,288 @@
+<!DOCTYPE html>
+<html lang="vi">
+
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>QR Code Nâng Cao</title>
+    <script src="https://cdn.jsdelivr.net/npm/qr-code-styling@1.6.0/lib/qr-code-styling.js"></script>
+    <style>
+        body {
+            font-family: "Segoe UI", Tahoma, sans-serif;
+            background: #f4f6f8;
+            margin: 160px;
+            display: flex;
+            justify-content: center;
+            padding: 30px 10px;
+        }
+
+        .container {
+            background: #fff;
+            padding: 25px 20px;
+            border-radius: 12px;
+            max-width: 500px;
+            width: 100%;
+            box-shadow: 0 8px 20px rgba(0, 0, 0, 0.08);
+        }
+
+        h2 {
+            text-align: center;
+            margin: 0 0 20px;
+            color: #333;
+        }
+
+        .form-group {
+            margin-bottom: 12px;
+            text-align: left;
+        }
+
+        .form-group label {
+            display: block;
+            font-size: 14px;
+            margin-bottom: 4px;
+            color: #555;
+        }
+
+        input[type="text"],
+        select,
+        input[type="file"] {
+            width: 100%;
+            padding: 8px;
+            font-size: 14px;
+            border: 1px solid #ccc;
+            border-radius: 6px;
+            box-sizing: border-box;
+        }
+
+        .color-pickers {
+            display: flex;
+            justify-content: space-between;
+            margin-top: 5px;
+        }
+
+        .color-pickers input[type="color"] {
+            display: flex;
+            width: 22%;
+            height: 36px;
+            border: none;
+            cursor: pointer;
+            border-radius: 6px;
+        }
+
+        .range-group {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .range-group input[type="range"] {
+            flex: 1;
+        }
+
+        button {
+            width: 32%;
+            padding: 10px;
+            margin: 6px 2px;
+            border: none;
+            border-radius: 6px;
+            font-size: 14px;
+            cursor: pointer;
+            background: #4CAF50;
+            color: #fff;
+            transition: background 0.2s;
+        }
+
+        button:hover {
+            background: #45a049;
+        }
+
+        #qr {
+            margin: 20px auto;
+            text-align: center;
+        }
+
+        #history {
+            margin-top: 10px;
+            max-height: 120px;
+            overflow-y: auto;
+            border: 1px solid #eee;
+            padding: 6px;
+            border-radius: 6px;
+            background: #fafafa;
+        }
+
+        .history-item {
+            padding: 4px 6px;
+            font-size: 13px;
+            color: #333;
+            border-radius: 4px;
+            cursor: pointer;
+            margin-bottom: 3px;
+        }
+
+        .history-item:hover {
+            background: #e0e0e0;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="container">
+        <h2>QR Code Nâng Cao</h2>
+        <div class="form-group">
+            <label>URL</label>
+            <input type="text" id="urlInput" placeholder="Ví dụ: https://example.com">
+        </div>
+        <div class="form-group">
+            <label>Chọn màu</label>
+            <div class="color-pickers">
+                <label>Màu mã QR:</label>
+                <input type="color" id="gradientColor1" value="#000000" title="Màu 1">
+                <label>Màu nền:</label>
+                <input type="color" id="gradientColor2" value="#ff0000" title="Màu 2">
+            </div>
+        </div>
+        <div class="form-group">
+            <label>Kiểu Gradient</label>
+            <select id="gradientType">
+                <option value="none">None (Mặc định)</option>
+                <option value="linear">Linear</option>
+                <option value="radial">Radial</option>
+            </select>
+        </div>
+        <div class="form-group">
+            <label>Kiểu mắt (Eye Shape)</label>
+            <select id="eyeShape">
+                <option value="square">Square</option>
+                <option value="dot">Dot</option>
+                <option value="extra-rounded">Extra-rounded</option>
+            </select>
+        </div>
+        <div class="form-group range-group">
+            <label>Kích thước</label>
+            <input type="range" id="size" min="200" max="500" value="300">
+            <span id="sizeValue">300px</span>
+        </div>
+        <div class="form-group">
+            <label>Logo (tùy chọn)</label>
+            <input type="file" id="logo" accept="image/*">
+        </div>
+        <div style="display:flex; justify-content:space-between; flex-wrap:wrap;">
+            <button id="generateBtn">Tạo QR</button>
+            <button id="downloadPngBtn">Tải PNG</button>
+        </div>
+        <div id="qr"></div>
+        <h3>Lịch sử URL</h3>
+        <div id="history"></div>
+
+    </div>
+
+
+    <script>
+        let qrCode = new QRCodeStyling({
+            width: 300,
+            height: 300,
+            data: "",
+            image: "",
+            dotsOptions: { color: "#000000", type: "rounded" },
+            cornersSquareOptions: { type: "square" },
+            backgroundOptions: { color: "#ffffff" },
+            imageOptions: { crossOrigin: "anonymous", margin: 5 }
+        });
+
+        const urlInput = document.getElementById('urlInput');
+        const gradientColor1 = document.getElementById('gradientColor1');
+        const gradientColor2 = document.getElementById('gradientColor2');
+        const gradientType = document.getElementById('gradientType');
+        const eyeShape = document.getElementById('eyeShape');
+        const sizeInput = document.getElementById('size');
+        const sizeValue = document.getElementById('sizeValue');
+        const logoInput = document.getElementById('logo');
+        const historyDiv = document.getElementById('history');
+
+        let urlHistory = JSON.parse(localStorage.getItem('urlHistory')) || [];
+
+        function isValidUrl(string) {
+            try { new URL(string); return true; } catch (_) { return false; }
+        }
+
+        function renderHistory() {
+            historyDiv.innerHTML = "";
+            urlHistory.forEach(url => {
+                const div = document.createElement('div');
+                div.className = 'history-item';
+                div.textContent = url.length > 40 ? url.slice(0, 37) + '...' : url;
+                div.title = url;
+                div.onclick = () => { urlInput.value = url; generateQR(); };
+                historyDiv.appendChild(div);
+            });
+        }
+
+        function saveHistory(url) {
+            if (!urlHistory.includes(url)) {
+                urlHistory.unshift(url);
+                if (urlHistory.length > 10) urlHistory.pop();
+                localStorage.setItem('urlHistory', JSON.stringify(urlHistory));
+                renderHistory();
+            }
+        }
+
+        function generateQR() {
+            const url = urlInput.value.trim();
+            if (!url) return alert("Vui lòng nhập URL!");
+            if (!isValidUrl(url)) return alert("URL không hợp lệ!");
+
+            const size = parseInt(sizeInput.value);
+            const gradientChoice = gradientType.value;
+            let dotsOptions = {};
+
+            if (gradientChoice === "none") {
+                dotsOptions = { color: gradientColor1.value, type: "rounded" };
+            } else {
+                dotsOptions = {
+                    gradient: {
+                        type: gradientChoice,
+                        rotation: 0,
+                        colorStops: [
+                            { offset: 0, color: gradientColor1.value },
+                            { offset: 1, color: gradientColor2.value }
+                        ]
+                    },
+                    type: "rounded"
+                };
+            }
+
+            qrCode.update({
+                width: size,
+                height: size,
+                data: url,
+                dotsOptions: dotsOptions,
+                cornersSquareOptions: { type: eyeShape.value },
+                backgroundOptions: { color: "#ffffff" }
+            });
+
+            if (logoInput.files[0]) {
+                const reader = new FileReader();
+                reader.onload = e => {
+                    qrCode.update({ image: e.target.result });
+                    qrCode.append(document.getElementById('qr'));
+                };
+                reader.readAsDataURL(logoInput.files[0]);
+            } else {
+                qrCode.update({ image: "" });
+                qrCode.append(document.getElementById('qr'));
+            }
+
+            saveHistory(url);
+        }
+
+        document.getElementById('generateBtn').addEventListener('click', generateQR);
+        urlInput.addEventListener('keypress', e => { if (e.key === "Enter") generateQR(); });
+        sizeInput.addEventListener('input', () => sizeValue.textContent = sizeInput.value + 'px');
+        document.getElementById('downloadPngBtn').addEventListener('click', () => qrCode.download({ extension: "png" }));
+
+        renderHistory();
+    </script>
+</body>
+
+</html>
